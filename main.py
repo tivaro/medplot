@@ -131,10 +131,10 @@ class WondCarousel(object):
 
 		img = self.bufferImage(id)
 
-		#print [r[0], for r in self.rulers]
-		[WondCarousel.addRuler(img,r[0],r[1],self.curTicks) for r in self.rulers]
+		[WondCarousel.addRuler(img,r[0],r[1],r[2]) for r in self.rulers]
 
 		if mouse:
+			#find out if ruler, or wLine
 			WondCarousel.addRuler(img,self.bufferPoint, mouse,self.curTicks,c=(180,200,100))
 
 
@@ -151,11 +151,12 @@ class WondCarousel(object):
 			if self.bufferPoint:
 				#finish this line
 				if len(self.rulers) < self.maxRulers:
-					self.rulers.append((self.bufferPoint,(x,y)))
+					self.rulers.append((self.bufferPoint,(x,y),self.curTicks))
 				elif len(self.wLines) < self.maxwLines:
 					self.wLines.append((self.bufferPoint,(x,y)))
-				else:
-					self.nextImg()
+					if len(self.wLines) == self.maxwLines:
+						self.nextImg()
+
 				self.bufferPoint = None
 
 
