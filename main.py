@@ -133,8 +133,6 @@ class WondCarousel(object):
 
 		c=(1,0,0)
 
-		
-
 		if event == cv2.EVENT_LBUTTONDOWN:
 			print self.bufferPoint
 			print self.wLines
@@ -160,8 +158,42 @@ class WondCarousel(object):
 		elif self.bufferPoint:
 			#a line is being dragged right now
 			img = self.bufferImg.copy()
-			cv2.line(img, self.bufferPoint, (x,y),c)
+			WondCarousel.addRuler(img,self.bufferPoint, (x,y),5)
 			cv2.imshow('image',img)	
+
+	@staticmethod
+	def addRuler(img,p1,p2,majorTicks,minorTicks=5,c=(1,0,0)):
+		#basic line
+		cv2.line(img, p1, p2,c,thickness=2)
+
+		#TICKS
+		majorLength = 40
+		minorLength = 20
+
+		#find orthogonal vector
+		vx = p1[0] - p2[0]
+		vy = p1[1] - p2[1]
+		ort = np.array([-vy,vx])
+		ort = ort / np.linalg.norm(ort)
+		for n in range(majorTicks+1):
+
+			#major ticks
+			x1 = int(p1[0] + (1.0*n/majorTicks)*(p2[0]-p1[0]))
+			y1 = int(p1[1] + (1.0*n/majorTicks)*(p2[1]-p1[1]))
+			x2 = int(x1 + ort[0] * majorLength)
+			y2 = int(y1 + ort[1] * majorLength)
+			cv2.line(img, (x1,y1), (x2,y2),c,thickness=2)
+
+			#minor ticks
+			for i in range(1,minorTicks):
+				x3 = int(x1 + (1.0*i/minorTicks))
+				y3 = int(y1 + (1.0*i/minorTicks))
+				x4 = int(x3 + ort[0] * minorLength)
+				y4 = int(y3 + ort[1] * minorLength)
+				cv2.line(img, (x3,y3), (x4,y4),c,thickness=1)
+
+
+
 
 
 
