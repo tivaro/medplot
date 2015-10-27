@@ -87,17 +87,47 @@ class WondCarousel(object):
 		self.resetIDlist()
 
 
-		#TODO: Find first image that is not completed yet and set this to curImg
+		#Find first image that is not completed yet and set this to curImg
+		cols = []
+		for n in range(self.maxRulers):
+			cols += WondCarousel.getRulerCols(n)
+		for n in range(self.maxwLines):	
+			cols += WondCarousel.getwLineCols(n)
+		print cols
+
+		indices = [False]*len(self.data)
+
+		try:
+			for col in cols:
+				indices = indices | (self.data[col].apply(np.isnan))
+			indices = indices & (self.data['ignore'] == 0)	
+			notDone = self.data[indices].index.values
+			if len(notDone) > 0:
+				self.curImg = notDone[0]
+		except:
+			pass
+
+	@staticmethod
+	def getRulerCols(n):
+		return ["r%ix1" % n,
+					"r%iy1" % n,
+					"r%ix2" % n,
+					"r%iy2" % n,
+					"r%iticks" % n ]
+
+	@staticmethod
+	def getwLineCols(n):
+		return ["l%ix1" % n,
+				"l%iy1" % n,
+				"l%ix2" % n,
+				"l%iy2" % n]
+					
 
 	def loadRulers(self,id=None):
 		id = id or self.curImg
 		self.rulers = []
 		for n in range(self.maxRulers):
-				cols = ["r%ix1" % n,
-					"r%iy1" % n,
-					"r%ix2" % n,
-					"r%iy2" % n,
-					"r%iticks" % n ]
+				cols = WondCarousel.getRulerCols(n)
 
 				try:
 					r = self.data.loc[id,cols].tolist()
@@ -115,11 +145,7 @@ class WondCarousel(object):
 			
 
 		for n in range(self.maxwLines):
-			cols = ["l%ix1" % n,
-				"l%iy1" % n,
-				"l%ix2" % n,
-				"l%iy2" % n]
-
+			cols = WondCarousel.getwLineCols(n)
 			try:
 				l = self.data.loc[id,cols].tolist()
 				if not np.isnan(l).any():
@@ -179,11 +205,7 @@ class WondCarousel(object):
 	def saveCurLines(self):
 		for n, ruler in enumerate(self.rulers):
 			#Flatten the rulers first
-			cols = ["r%ix1" % n,
-					"r%iy1" % n,
-					"r%ix2" % n,
-					"r%iy2" % n,
-					"r%iticks" % n]
+			cols = WondCarousel.getRulerCols(n)
 			ruler =  list(ruler[0]) + list(ruler[1]) + [ruler[2]]
 			for i in range(len(cols)):
 			 	self.data.loc[self.curImg,cols[i]] = ruler[i]
@@ -191,10 +213,7 @@ class WondCarousel(object):
 
 		for n, line in enumerate(self.wLines):
 			#Flatten the rulers first
-			cols = ["l%ix1" % n,
-					"l%iy1" % n,
-					"l%ix2" % n,
-					"l%iy2" % n]
+			cols = WondCarousel.getwLineCols(n)
 			line = list(line[0]) + list(line[1])
 			for i in range(len(cols)):
 			 	self.data.loc[self.curImg,cols[i]] = line[i]
@@ -334,7 +353,7 @@ class WondCarousel(object):
 			#register which key was pressed
 			k = cv2.waitKey(0)
 
-			print k
+			#print k
 
 			if k in self.keys['escape']:
 				if self.bufferPoint:
