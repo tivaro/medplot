@@ -121,11 +121,10 @@ class WondCarousel(object):
 				"l%iy1" % n,
 				"l%ix2" % n,
 				"l%iy2" % n]
-					
 
-	def loadRulers(self,id=None):
+	def getRulers(self,id=None):
 		id = id or self.curImg
-		self.rulers = []
+		rulers = []
 		for n in range(self.maxRulers):
 				cols = WondCarousel.getRulerCols(n)
 
@@ -133,16 +132,16 @@ class WondCarousel(object):
 					r = self.data.loc[id,cols].tolist()
 					if not np.isnan(r).any():
 						r = [int(ri) for ri in r]
-						self.rulers.append(
+						rulers.append(
 							((r[0],r[1]),(r[2],r[3]),r[4])
 							)
 				except:
 					pass
+		return rulers
 
-	def loadwLines(self,id=None):
+	def getwLines(self,id=None):
 		id = id or self.curImg
-		self.wLines = []
-			
+		wLines = []
 
 		for n in range(self.maxwLines):
 			cols = WondCarousel.getwLineCols(n)
@@ -150,14 +149,24 @@ class WondCarousel(object):
 				l = self.data.loc[id,cols].tolist()
 				if not np.isnan(l).any():
 					l = [int(li) for li in l]
-					self.wLines.append(
+					wLines.append(
 						((l[0],l[1]),(l[2],l[3]))
 						)
 			except:
 				pass
+		return wLines	
+
+					
+
+	def loadRulers(self,id=None):
+		id = id or self.curImg
+		self.rulers = self.getRulers(id)
+
+	def loadwLines(self,id=None):
+		id = id or self.curImg
+		self.wLines = self.getwLines(id)
 
 		
-
 	def bufferImage(self,id=None):
 
 		id = id or self.curImg
@@ -322,12 +331,46 @@ class WondCarousel(object):
 		print self.rulers
 		print "wLines:"
 		print self.wLines
+		print "Stats:"
+		print self.statsFromLines()
 
 	def saveData(self):
 		self.data.to_csv(self.dataPath)
 		print "Saved data!"
 			
 	
+	def statsFromLines(self,id=None):
+		id = id or self.curImg
+
+		wLines = self.getwLines(id)
+		rulers = self.getRulers(id)
+
+		print "Stats"
+
+		if len(wLines) == self.maxwLines and len(rulers) == self.maxRulers:
+			#calculate mm to coordinate ratio
+			ratios = []
+			for ruler in rulers:
+				#calculate length of line and divide by ticks
+				ratios.append(np.linalg.norm(np.array(ruler[1]) - np.array(ruler[0])) / ruler[2])
+			ratio = np.mean(ratios)
+			std   = np.std(ratios)
+
+			wLengths = []
+			wStds    = []
+			for wLine in wLines:
+				#divide wline lenght in px by ratio to get std in cm : xm = px/(px/cm)
+				wLength = np.linalg.norm(np.array(wLine[1]) - np.array(wLine[0])) / ratio
+				wLengths.append(wLength)
+				wStds.append(wLength/ratio)
+
+			return wLengths[0], wStds[0], wLengths[1], wStds[1]
+
+		else:
+			return False
+
+		
+
 
 
 	def run(self):
@@ -381,7 +424,7 @@ class WondCarousel(object):
 def main():
 	w = WondCarousel()
 	w.run()
-	print w.data
+	#print w.data
 	#w.data.to_csv(w.dataPath)
 	
 
