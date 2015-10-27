@@ -88,6 +88,48 @@ class WondCarousel(object):
 
 		#load images, and measurement data if it exists yet
 
+	def loadRulers(self,id=None):
+		id = id or self.curImg
+		self.rulers = []
+		for n in range(self.maxRulers):
+				cols = ["r%ix1" % n,
+					"r%iy1" % n,
+					"r%ix2" % n,
+					"r%iy2" % n,
+					"r%iticks" % n ]
+
+				try:
+					r = self.data.loc[id,cols].tolist()
+					if not np.isnan(r).any():
+						r = [int(ri) for ri in r]
+						self.rulers.append(
+							((r[0],r[1]),(r[2],r[3]),r[4])
+							)
+				except:
+					pass
+
+	def loadwLines(self,id=None):
+		id = id or self.curImg
+		self.wLines = []
+			
+
+		for n in range(self.maxwLines):
+			cols = ["l%ix1" % n,
+				"l%iy1" % n,
+				"l%ix2" % n,
+				"l%iy2" % n]
+
+			try:
+				l = self.data.loc[id,cols].tolist()
+				if not np.isnan(l).any():
+					l = [int(li) for li in l]
+					self.wLines.append(
+						((l[0],l[1]),(l[2],l[3]))
+						)
+			except:
+				pass
+
+		
 
 	def bufferImage(self,id=None):
 
@@ -100,7 +142,8 @@ class WondCarousel(object):
 			img = cv2.resize(img,(newx,newy))
 
 			#also load ruler and line data . . .
-
+			self.loadRulers()
+			self.loadwLines()
 
 			self.bufferImg = img
 			self.bufferID  = id
@@ -153,7 +196,7 @@ class WondCarousel(object):
 					"l%iy2" % n]
 			line = list(line[0]) + list(line[1])
 			for i in range(len(cols)):
-			 	self.data.loc[self.curImg,cols[i]] = ruler[i]
+			 	self.data.loc[self.curImg,cols[i]] = line[i]
 			#self.data.loc[self.curImg,cols] = list(ruler[0]) + list(ruler[1]) + [ruler[2]]
 
 
@@ -251,6 +294,15 @@ class WondCarousel(object):
 		cv2.line(img, p1,tuple(int(p1[i] + ort[i]) for i in xy),c,thickness=1)
 		cv2.line(img, p2,tuple(int(p2[i] + ort[i]) for i in xy),c,thickness=1)
 
+	def printInfo(self):
+		id=self.curImg
+		print "Image #%i (%s)" % (id, self.data.loc[id,'imgPath'])
+		print "Rulers:"
+		print self.rulers
+		print "wLines:"
+		print self.wLines
+	
+
 
 	def run(self):
 		"""
@@ -283,7 +335,7 @@ class WondCarousel(object):
 				else:
 					running=False
 			elif k in self.keys['info']:
-				print self.rulers
+				self.printInfo()
 			elif k in self.keys['next']:
 				self.nextImg()
 			elif k in self.keys['prev']:
