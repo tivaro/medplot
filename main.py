@@ -144,9 +144,6 @@ class WondCarousel(object):
 
 
 		if event == cv2.EVENT_LBUTTONDOWN:
-			print self.bufferPoint
-			print self.wLines
-			print self.rulers
 
 			if self.bufferPoint:
 				#finish this line
@@ -158,6 +155,8 @@ class WondCarousel(object):
 						self.nextImg()
 
 				self.bufferPoint = None
+				
+				self.renderImage()
 
 
 
@@ -181,28 +180,27 @@ class WondCarousel(object):
 		minorLength = 10
 
 
-		#find orthogonal vector
-		dx = p2[0] - p1[0]
-		dy = p2[1] - p1[1]
-		ort = np.array([-dy,dx])
+		#find orthonormal vector
+		xy = [0,1]
+		delta = [ p2[i] - p1[i] for i in xy ]
+		ort = np.array([-delta[1],delta[0]])
 		ort = ort / np.linalg.norm(ort)
-		for n in range(majorTicks+1):
+
+		for m in range(majorTicks+1):
 
 			#major ticks
-			x1 = int(p1[0] + (1.0*n/majorTicks)*dx)
-			y1 = int(p1[1] + (1.0*n/majorTicks)*dy)
-			x2 = int(x1 + ort[0] * majorLength)
-			y2 = int(y1 + ort[1] * majorLength)
-			cv2.line(img, (x1,y1), (x2,y2),c,thickness=2)
+			m1 = tuple(int(p1[i] + (1.0*m/majorTicks)*delta[i]) for i in xy)
+			m2 = tuple(int(m1[i] + ort[i] * majorLength) for i in xy)
+
+			#cv2.line(img, (x1,y1), (x2,y2),c,thickness=2)
+			cv2.line(img,m1,m2,c,thickness=2)
 
 			#minor ticks
-			if n < majorTicks:
-				for i in range(1,minorTicks):
-					x3 = int(x1 + (1.0*i/minorTicks)*(dx/majorTicks))
-					y3 = int(y1 + (1.0*i/minorTicks)*(dy/majorTicks))
-					x4 = int(x3 + ort[0] * minorLength)
-					y4 = int(y3 + ort[1] * minorLength)
-					cv2.line(img, (x3,y3), (x4,y4),c,thickness=1)
+			if m < majorTicks:
+				for n in range(1,minorTicks):
+					n1 = tuple(int(m1[i] + (1.0*n/minorTicks)*(delta[i]/majorTicks)) for i in xy)
+					n2 = tuple(int(n1[i] + ort[i] * minorLength) for i in xy)
+					cv2.line(img, n1, n2,c,thickness=1)
 
 
 
