@@ -132,10 +132,15 @@ class WondCarousel(object):
 		img = self.bufferImage(id)
 
 		[WondCarousel.addRuler(img,r[0],r[1],r[2]) for r in self.rulers]
+		c = [(240,0,140),(140,0,240)]
+		[WondCarousel.addwLine(img,l[0],l[1],c[i]) for i,l in enumerate(self.wLines)]
 
 		if mouse:
 			#find out if ruler, or wLine
-			WondCarousel.addRuler(img,self.bufferPoint, mouse,self.curTicks,c=(180,200,100))
+			if len(self.rulers) < self.maxRulers:
+				WondCarousel.addRuler(img,self.bufferPoint, mouse,self.curTicks,c=(180,200,100))
+			else:
+				WondCarousel.addwLine(img,self.bufferPoint, mouse,c=(20,0,240))
 
 
 		cv2.imshow('image',img)	
@@ -155,15 +160,13 @@ class WondCarousel(object):
 						self.nextImg()
 
 				self.bufferPoint = None
-				
-				self.renderImage()
 
+				self.renderImage()
 
 
 			else:
 				self.bufferPoint = (x,y)
 				self.curTicks 	 = self.defaultTicks
-
 
 
 		elif self.bufferPoint and self.bufferPoint != (x,y):
@@ -202,6 +205,21 @@ class WondCarousel(object):
 					n2 = tuple(int(n1[i] + ort[i] * minorLength) for i in xy)
 					cv2.line(img, n1, n2,c,thickness=1)
 
+	@staticmethod
+	def addwLine(img,p1,p2,c=(20,0,240)):
+		#basic line
+		cv2.line(img, p1, p2,c,thickness=2)
+
+		#endpoints
+		length = 10
+
+		#find orthonormal vector
+		xy = [0,1]
+		delta = [ p2[i] - p1[i] for i in xy ]
+		ort = np.array([-delta[1],delta[0]])
+		ort = ort / np.linalg.norm(ort) * length
+		cv2.line(img, p1,tuple(int(p1[i] + ort[i]) for i in xy),c,thickness=1)
+		cv2.line(img, p2,tuple(int(p2[i] + ort[i]) for i in xy),c,thickness=1)
 
 
 	def run(self):
