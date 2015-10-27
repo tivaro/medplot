@@ -18,6 +18,7 @@ class WondCarousel(object):
 		self.sizeFactor = 5#2.2
 		self.maxRulers = 2
 		self.maxwLines = 2
+		self.defaultTicks=5
 		self.keys = {
 				'next':[63235], #>
 				'prev':[63234], #< 
@@ -25,6 +26,7 @@ class WondCarousel(object):
 				'ruler+':[61], #+
 				'ruler-':[45], #-
 				'ignore':[13], #return
+				'info':[105] #i
 		}
 
 		#initialise variables
@@ -33,6 +35,7 @@ class WondCarousel(object):
 		self.bufferPoint = None
 		self.rulers		 = []
 		self.wLines		 = []
+		self.curTicks    = None
 
 		self.loadData()
 
@@ -95,8 +98,9 @@ class WondCarousel(object):
 			img = cv2.resize(img,(newx,newy))
 
 			self.bufferImg = img
+			self.bufferID  = id
 
-		return self.bufferImg
+		return self.bufferImg.copy()
 
 	def resetIDlist(self):
 		self.IDlist = self.data[self.data.ignore == 0].index.values
@@ -123,9 +127,16 @@ class WondCarousel(object):
 		self.nextImg()
 
 
-	def renderImage(self,id=None):
+	def renderImage(self,id=None,mouse=None):
 
 		img = self.bufferImage(id)
+
+		#print [r[0], for r in self.rulers]
+		[WondCarousel.addRuler(img,r[0],r[1],self.curTicks) for r in self.rulers]
+
+		if mouse:
+			WondCarousel.addRuler(img,self.bufferPoint, mouse,self.curTicks,c=(180,200,100))
+
 
 		cv2.imshow('image',img)	
 
@@ -151,14 +162,13 @@ class WondCarousel(object):
 
 			else:
 				self.bufferPoint = (x,y)
+				self.curTicks 	 = self.defaultTicks
 
 
 
-		elif self.bufferPoint:
+		elif self.bufferPoint and self.bufferPoint != (x,y):
 			#a line is being dragged right now
-			img = self.bufferImg.copy()
-			WondCarousel.addRuler(img,self.bufferPoint, (x,y),5,c=(180,200,100))
-			cv2.imshow('image',img)	
+			self.renderImage(mouse=(x,y))
 
 	@staticmethod
 	def addRuler(img,p1,p2,majorTicks,minorTicks=5,c=(200,180,100)):
@@ -194,6 +204,7 @@ class WondCarousel(object):
 					cv2.line(img, (x3,y3), (x4,y4),c,thickness=1)
 
 
+
 	def run(self):
 		"""
 		Runs the program until it is closed by user!
@@ -211,7 +222,8 @@ class WondCarousel(object):
 
 		while running:
 
-			self.renderImage()
+			if not self.bufferPoint:
+				self.renderImage()
 
 			#register which key was pressed
 			k = cv2.waitKey(0)
@@ -223,15 +235,20 @@ class WondCarousel(object):
 					self.bufferPoint = None
 				else:
 					running=False
+			elif k in self.keys['info']:
+				print self.rulers
 			elif k in self.keys['next']:
 				self.nextImg()
 			elif k in self.keys['prev']:
 				self.prevImg()
 			elif k in self.keys['ignore']:
 				self.ignoreImg()
+			elif k in self.keys['ruler+']:
+				self.curTicks += 1
+			elif k in self.keys['ruler-'] and self.curTicks > 1:
+				self.curTicks -= 1
 			else:
 				pass
-
 
 
 def main():
