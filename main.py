@@ -4,6 +4,7 @@ import cv2
 from os import listdir
 import os.path
 from PIL import Image, ExifTags
+from itertools import chain
 
 #MAIN PROGRAM!
 
@@ -56,6 +57,7 @@ class WondCarousel(object):
 			try:
 				self.data = pd.read_csv(self.dataPath)
 			except:
+				#TODO: Initialise ruler and wondname columns here!
 				self.data = pd.DataFrame(columns=['imgPath'])
 
 		#add images that do not have a record yet 
@@ -97,6 +99,9 @@ class WondCarousel(object):
 			newx,newy = int(img.shape[1]/self.sizeFactor),int(img.shape[0]/self.sizeFactor) #new size (w,h)
 			img = cv2.resize(img,(newx,newy))
 
+			#also load ruler and line data . . .
+
+
 			self.bufferImg = img
 			self.bufferID  = id
 
@@ -125,6 +130,31 @@ class WondCarousel(object):
 		self.data.loc[self.curImg,'ignore'] = 1
 		self.resetIDlist()
 		self.nextImg()
+
+
+	def saveCurLines(self):
+		for n, ruler in enumerate(self.rulers):
+			#Flatten the rulers first
+			cols = ["r%ix1" % n,
+					"r%iy1" % n,
+					"r%ix2" % n,
+					"r%iy2" % n,
+					"r%iticks" % n]
+			ruler =  list(ruler[0]) + list(ruler[1]) + [ruler[2]]
+			for i in range(len(cols)):
+			 	self.data.loc[self.curImg,cols[i]] = ruler[i]
+			#self.data.loc[self.curImg,cols] = list(ruler[0]) + list(ruler[1]) + [ruler[2]]
+
+		for n, line in enumerate(self.wLines):
+			#Flatten the rulers first
+			cols = ["l%ix1" % n,
+					"l%iy1" % n,
+					"l%ix2" % n,
+					"l%iy2" % n]
+			line = list(line[0]) + list(line[1])
+			for i in range(len(cols)):
+			 	self.data.loc[self.curImg,cols[i]] = ruler[i]
+			#self.data.loc[self.curImg,cols] = list(ruler[0]) + list(ruler[1]) + [ruler[2]]
 
 
 	def renderImage(self,id=None,mouse=None):
@@ -157,6 +187,7 @@ class WondCarousel(object):
 				elif len(self.wLines) < self.maxwLines:
 					self.wLines.append((self.bufferPoint,(x,y)))
 					if len(self.wLines) == self.maxwLines:
+						self.saveCurLines()
 						self.nextImg()
 
 				self.bufferPoint = None
@@ -195,7 +226,6 @@ class WondCarousel(object):
 			m1 = tuple(int(p1[i] + (1.0*m/majorTicks)*delta[i]) for i in xy)
 			m2 = tuple(int(m1[i] + ort[i] * majorLength) for i in xy)
 
-			#cv2.line(img, (x1,y1), (x2,y2),c,thickness=2)
 			cv2.line(img,m1,m2,c,thickness=2)
 
 			#minor ticks
