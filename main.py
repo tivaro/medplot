@@ -13,12 +13,12 @@ class WondCarousel(object):
 	def __init__(self):
 
 		#default settings
-		self.imgDir    = 'fotos/'
-		self.imgExts   = ['.png','.jpg','.jpeg']
-		self.dataPath  = 'measurements.csv'
-		self.sizeFactor = 5#2.2
-		self.maxRulers = 2
-		self.maxwLines = 2
+		self.imgDir     = 'fotos/'
+		self.imgExts    = ['.png','.jpg','.jpeg']
+		self.dataPath   = 'measurements.csv'
+		self.sizeFactor = 4 #2.2
+		self.maxRulers  = 2
+		self.maxwLines  = 2
 		self.defaultTicks=5
 		self.keys = {
 				'next':[63235], #>
@@ -27,7 +27,8 @@ class WondCarousel(object):
 				'ruler+':[61], #+
 				'ruler-':[45], #-
 				'ignore':[13], #return
-				'info':[105] #i
+				'info':[105], #i
+				'save':[115] #s
 		}
 
 		#initialise variables
@@ -55,7 +56,7 @@ class WondCarousel(object):
 		#try to load data from file
 		if not hasattr(self, 'data'):
 			try:
-				self.data = pd.read_csv(self.dataPath)
+				self.data = pd.read_csv(self.dataPath, index_col=0)
 			except:
 				#TODO: Initialise ruler and wondname columns here!
 				self.data = pd.DataFrame(columns=['imgPath'])
@@ -86,7 +87,7 @@ class WondCarousel(object):
 		self.resetIDlist()
 
 
-		#load images, and measurement data if it exists yet
+		#TODO: Find first image that is not completed yet and set this to curImg
 
 	def loadRulers(self,id=None):
 		id = id or self.curImg
@@ -227,10 +228,11 @@ class WondCarousel(object):
 				#finish this line
 				if len(self.rulers) < self.maxRulers:
 					self.rulers.append((self.bufferPoint,(x,y),self.curTicks))
+					self.saveCurLines()
 				elif len(self.wLines) < self.maxwLines:
 					self.wLines.append((self.bufferPoint,(x,y)))
+					self.saveCurLines()
 					if len(self.wLines) == self.maxwLines:
-						self.saveCurLines()
 						self.nextImg()
 
 				self.bufferPoint = None
@@ -301,6 +303,11 @@ class WondCarousel(object):
 		print self.rulers
 		print "wLines:"
 		print self.wLines
+
+	def saveData(self):
+		self.data.to_csv(self.dataPath)
+		print "Saved data!"
+			
 	
 
 
@@ -334,6 +341,8 @@ class WondCarousel(object):
 					self.bufferPoint = None
 				else:
 					running=False
+			elif k in self.keys['save']:
+				self.saveData()
 			elif k in self.keys['info']:
 				self.printInfo()
 			elif k in self.keys['next']:
