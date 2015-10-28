@@ -389,6 +389,36 @@ class WondCarousel(object):
 		else:
 			return False
 
+	def plotGraph(self):
+		ids = self.getDoneList()
+		lengths1 = []
+		lengths2 = []
+		stds1 = []
+		stds2 = []
+		datetimes = []
+
+		for id in ids:
+			l1,std1,l2,std2 = self.statsFromLines(id)
+			lengths1.append(l1)
+			lengths2.append(l2)
+			stds1.append(std1)
+			stds2.append(std2)
+			datetimes.append(self.data.loc[id].datetime)
+
+		timestamps = [time.mktime(d.timetuple()) for d in datetimes]
+
+		plt.errorbar(timestamps,lengths1,yerr=stds1,marker='.',label='lengte',color='purple')
+		plt.errorbar(timestamps,lengths2,yerr=stds2,marker='.',label='breedte',color='pink')
+		
+
+		ax = plt.gca()
+		xTicks  =  ax.get_xticks()
+		xLabels = [datetime.datetime.fromtimestamp(x).strftime('%Y-%m-%d') for x in xTicks]
+		plt.xticks(xTicks, xLabels, rotation=30)
+
+		plt.ylabel('Grootte (cm)')
+		plt.legend(loc=2)
+		plt.tight_layout()
 		
 
 
@@ -446,46 +476,7 @@ def main():
 	w = WondCarousel()
 	w.run()
 
-	#now make the graph
-	ids = w.getDoneList()
-	lengths1 = []
-	lengths2 = []
-	stds1 = []
-	stds2 = []
-	datetimes = []
-
-	for id in ids:
-		l1,std1,l2,std2 = w.statsFromLines(id)
-		lengths1.append(l1)
-		lengths2.append(l2)
-		stds1.append(std1)
-		stds2.append(std2)
-		datetimes.append(w.data.loc[id].datetime)
-
-	timestamps = matplotlib.dates.date2num(datetimes)	
-	timestamps = [time.mktime(d.timetuple()) for d in datetimes]
-
-	plt.errorbar(timestamps,lengths1,yerr=stds1,marker='.',label='lengte',color='purple')
-	plt.errorbar(timestamps,lengths2,yerr=stds2,marker='.',label='breedte',color='pink')
-
-	#TODO: set x-ticks
-	
-
-	ax = plt.gca()
-	nTicks = 10
-
-
-	xTicks  = np.linspace(*(plt.xlim()+(nTicks,)))
-	xTicks  =  ax.get_xticks()
-	print xTicks[0], xTicks[-1]
-	print datetimes[0].strftime('%Y-%m-%d %H:%M:%S'), datetimes[-1].strftime('%Y-%m-%d %H:%M:%S')
-	xLabels = [datetime.datetime.fromtimestamp(x).strftime('%Y-%m-%d') for x in xTicks]
-	print xLabels
-	plt.xticks(xTicks, xLabels, rotation=30)
-
-	plt.ylabel('Grootte (cm)')
-	plt.legend(loc=2)
-	plt.tight_layout()
+	w.plotGraph()
 	plt.show()
 
 
