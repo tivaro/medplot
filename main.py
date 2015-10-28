@@ -31,7 +31,8 @@ class WondCarousel(object):
 				'ruler-':[45], #-
 				'ignore':[13], #return
 				'info':[105], #i
-				'save':[115] #s
+				'save':[115], #s
+				'graph':[103] #g
 		}
 
 		#initialise variables
@@ -446,8 +447,6 @@ class WondCarousel(object):
 			#register which key was pressed
 			k = cv2.waitKey(0)
 
-			#print k
-
 			if k in self.keys['escape']:
 				if self.bufferPoint:
 					self.bufferPoint = None
@@ -467,8 +466,11 @@ class WondCarousel(object):
 				self.curTicks += 1
 			elif k in self.keys['ruler-'] and self.curTicks > 1:
 				self.curTicks -= 1
+			elif k in self.keys['graph']:
+				self.plotGraph()
+				plt.show()
 			else:
-				pass
+				print "Key %i not recognised" % k
 
 			#TODO: Add key to remove:> then: rulers? or lines?
 
