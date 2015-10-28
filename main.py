@@ -213,20 +213,23 @@ class WondCarousel(object):
 		except:
 			pass
 
+	def setCurID(self,id):
+	 	self.curID = id
+	 	self.renderImage()
+	 	self.updateGraph()
+
 
 	def nextImg(self):
 		allowedNext = self.IDlist[self.IDlist > self.curID]
 		#print self.curID, allowedNext[0:20]
 		if len(allowedNext) > 0:
-		 	self.curID = allowedNext[0]
-		 	self.renderImage()
+		 	self.setCurID(allowedNext[0])
 
 	def prevImg(self):
 		allowedPrev = self.IDlist[self.IDlist < self.curID]
 		#print self.curID, allowedPrev[0:20]
 		if len(allowedPrev) > 0:
-			self.curID = allowedPrev[-1]
-			self.renderImage()
+			self.setCurID(allowedPrev[-1])
 
 	def ignoreImg(self):
 		#self.data.ignore[self.curID] = 1
@@ -350,6 +353,14 @@ class WondCarousel(object):
 		cv2.line(img, p1,tuple(int(p1[i] + ort[i]) for i in xy),c,thickness=1)
 		cv2.line(img, p2,tuple(int(p2[i] + ort[i]) for i in xy),c,thickness=1)
 
+	@staticmethod
+	def toTimestamp(datetime):
+		return time.mktime(datetime.timetuple())
+
+	@staticmethod
+	def fromTimestamp(timestamp):
+		return datetime.datetime.fromtimestamp(timestamp)
+
 	def printInfo(self):
 		id=self.curID
 		print "Image #%i (%s)" % (id, self.data.loc[id,'imgPath'])
@@ -413,7 +424,7 @@ class WondCarousel(object):
 			stds2.append(std2)
 			datetimes.append(self.data.loc[cid].datetime)
 
-		timestamps = [time.mktime(d.timetuple()) for d in datetimes]
+		timestamps = [WondCarousel.toTimestamp(d) for d in datetimes]
 
 		plt.errorbar(timestamps,lengths1, yerr=stds1, marker='.', label='lengte',  color='purple')
 		plt.errorbar(timestamps,lengths2, yerr=stds2, marker='.', label='breedte', color='pink')
@@ -429,7 +440,7 @@ class WondCarousel(object):
 				t = timestamps[ix]
 			else:
 				d = self.data.loc[self.curID].datetime
-				t = time.mktime(d.timetuple())
+				t = WondCarousel.toTimestamp(d)
 
 			#plot line and text for the current datetime
 			plt.plot([t,t],plt.ylim(),color='green')
@@ -438,7 +449,7 @@ class WondCarousel(object):
 
 
 		xTicks  =  ax.get_xticks()
-		xLabels = [datetime.datetime.fromtimestamp(x).strftime('%Y-%m-%d') for x in xTicks]
+		xLabels = [WondCarousel.fromTimestamp(x).strftime('%Y-%m-%d') for x in xTicks]
 		plt.xticks(xTicks, xLabels, rotation=30)		
 
 		plt.ylabel('Grootte (cm)')
@@ -451,6 +462,7 @@ class WondCarousel(object):
 			self.graphFig = plt.figure()
 			self.updateGraph()
 			plt.show(block=False)
+			cid = self.graphFig.canvas.mpl_connect('button_press_event', self.clickGraph)
 		else:	
 			plt.close(self.graphFig)
 		 	self.graphFig = None
@@ -463,6 +475,18 @@ class WondCarousel(object):
 			fig.clear()
 			self.plotGraph(id=self.curID,fig=fig)
 			plt.draw()
+
+
+	def clickGraph(self,event):
+		#TODO: Find closest x
+		#print 'button=%d, x=%d, y=%d, xdata=%f, ydata=%f'%(	event.button, event.x, event.y, event.xdata, event.ydata)
+		if event.xdata is not None:
+			timestamps = self.data.loc[self.IDlist,'datetime'].apply(WondCarousel.toTimestamp).values
+			closestID = min(range(len(timestamps)), key=lambda i: abs(timestamps[i]-event.xdata))
+			self.setCurID(closestID)
+
+		#TODO: BUGS: still catches ignored images, there seems to be an offset, it does not select the date that was just clicked	
+
 
 		
 
@@ -542,6 +566,7 @@ def main():
 	w = WondCarousel()
 	w.run()
 
+	#TODO: BUG: when deleting rulers and wlines graph doesn't update
 	# w.plotGraph()
 	# plt.show()
 	#print w.data
