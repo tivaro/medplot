@@ -93,7 +93,6 @@ class WondCarousel(object):
 			cols += WondCarousel.getRulerCols(n)
 		for n in range(self.maxwLines):	
 			cols += WondCarousel.getwLineCols(n)
-		print cols
 
 		indices = [False]*len(self.data)
 
@@ -188,6 +187,22 @@ class WondCarousel(object):
 
 	def resetIDlist(self):
 		self.IDlist = self.data[self.data.ignore == 0].index.values
+
+	def getDoneList(self):
+		indices = [True]*len(self.data)
+		cols = []
+		for n in range(self.maxRulers):
+			cols += WondCarousel.getRulerCols(n)
+		for n in range(self.maxwLines):	
+			cols += WondCarousel.getwLineCols(n)
+		try:
+			for col in cols:
+				indices = indices & ~(self.data[col].apply(np.isnan))
+				notDone = self.data[indices].index.values
+			if len(notDone) > 0:
+				return notDone
+		except:
+			pass
 
 
 	def nextImg(self):
@@ -345,8 +360,6 @@ class WondCarousel(object):
 		wLines = self.getwLines(id)
 		rulers = self.getRulers(id)
 
-		print "Stats"
-
 		if len(wLines) == self.maxwLines and len(rulers) == self.maxRulers:
 			#calculate mm to coordinate ratio
 			ratios = []
@@ -420,12 +433,36 @@ class WondCarousel(object):
 			else:
 				pass
 
-
 def main():
 	w = WondCarousel()
 	w.run()
+
+	#now make the graph
+	ids = w.getDoneList()
+	lengths1 = []
+	lengths2 = []
+	stds1 = []
+	stds2 = []
+	times = []
+
+	for id in ids:
+		l1,std1,l2,std2 = w.statsFromLines(id)
+		lengths1.append(l1)
+		lengths2.append(l2)
+		stds1.append(std1)
+		stds2.append(std2)
+		times.append(w.data[id].DateTime.value)
+
+	print lengths1
+	print lengths2
+	print stds1
+	print stds2
+	print times
+
+
+
+
 	#print w.data
-	#w.data.to_csv(w.dataPath)
 	
 
 if __name__ == '__main__':
