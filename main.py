@@ -32,7 +32,7 @@ class WondCarousel(object):
 		}
 
 		#initialise variables
-		self.curImg      = 0
+		self.curID      = 0
 		self.bufferID    = None
 		self.bufferPoint = None
 		self.rulers		 = []
@@ -87,7 +87,7 @@ class WondCarousel(object):
 		self.resetIDlist()
 
 
-		#Find first image that is not completed yet and set this to curImg
+		#Find first image that is not completed yet and set this to curID
 		cols = []
 		for n in range(self.maxRulers):
 			cols += WondCarousel.getRulerCols(n)
@@ -102,7 +102,7 @@ class WondCarousel(object):
 			indices = indices & (self.data['ignore'] == 0)	
 			notDone = self.data[indices].index.values
 			if len(notDone) > 0:
-				self.curImg = notDone[0]
+				self.curID = notDone[0]
 		except:
 			pass
 
@@ -122,7 +122,7 @@ class WondCarousel(object):
 				"l%iy2" % n]
 
 	def getRulers(self,id=None):
-		id = id or self.curImg
+		id = self.curID if id is None else id
 		rulers = []
 		for n in range(self.maxRulers):
 				cols = WondCarousel.getRulerCols(n)
@@ -139,7 +139,7 @@ class WondCarousel(object):
 		return rulers
 
 	def getwLines(self,id=None):
-		id = id or self.curImg
+		id = self.curID if id is None else id
 		wLines = []
 
 		for n in range(self.maxwLines):
@@ -158,17 +158,17 @@ class WondCarousel(object):
 					
 
 	def loadRulers(self,id=None):
-		id = id or self.curImg
+		id = self.curID if id is None else id
 		self.rulers = self.getRulers(id)
 
 	def loadwLines(self,id=None):
-		id = id or self.curImg
+		id = self.curID if id is None else id
 		self.wLines = self.getwLines(id)
 
 		
 	def bufferImage(self,id=None):
 
-		id = id or self.curImg
+		id = self.curID if id is None else id
 		if not self.bufferID == id:
 			img = cv2.imread(self.imgDir + self.data.imgPath[id])
 
@@ -206,22 +206,22 @@ class WondCarousel(object):
 
 
 	def nextImg(self):
-		allowedNext = self.IDlist[self.IDlist > self.curImg]
-		#print self.curImg, allowedNext[0:20]
+		allowedNext = self.IDlist[self.IDlist > self.curID]
+		#print self.curID, allowedNext[0:20]
 		if len(allowedNext) > 0:
-		 	self.curImg = allowedNext[0]
+		 	self.curID = allowedNext[0]
 		 	self.renderImage()
 
 	def prevImg(self):
-		allowedPrev = self.IDlist[self.IDlist < self.curImg]
-		#print self.curImg, allowedPrev[0:20]
+		allowedPrev = self.IDlist[self.IDlist < self.curID]
+		#print self.curID, allowedPrev[0:20]
 		if len(allowedPrev) > 0:
-			self.curImg = allowedPrev[-1]
+			self.curID = allowedPrev[-1]
 			self.renderImage()
 
 	def ignoreImg(self):
-		#self.data.ignore[self.curImg] = 1
-		self.data.loc[self.curImg,'ignore'] = 1
+		#self.data.ignore[self.curID] = 1
+		self.data.loc[self.curID,'ignore'] = 1
 		self.resetIDlist()
 		self.nextImg()
 
@@ -232,16 +232,16 @@ class WondCarousel(object):
 			cols = WondCarousel.getRulerCols(n)
 			ruler =  list(ruler[0]) + list(ruler[1]) + [ruler[2]]
 			for i in range(len(cols)):
-			 	self.data.loc[self.curImg,cols[i]] = ruler[i]
-			#self.data.loc[self.curImg,cols] = list(ruler[0]) + list(ruler[1]) + [ruler[2]]
+			 	self.data.loc[self.curID,cols[i]] = ruler[i]
+			#self.data.loc[self.curID,cols] = list(ruler[0]) + list(ruler[1]) + [ruler[2]]
 
 		for n, line in enumerate(self.wLines):
 			#Flatten the rulers first
 			cols = WondCarousel.getwLineCols(n)
 			line = list(line[0]) + list(line[1])
 			for i in range(len(cols)):
-			 	self.data.loc[self.curImg,cols[i]] = line[i]
-			#self.data.loc[self.curImg,cols] = list(ruler[0]) + list(ruler[1]) + [ruler[2]]
+			 	self.data.loc[self.curID,cols[i]] = line[i]
+			#self.data.loc[self.curID,cols] = list(ruler[0]) + list(ruler[1]) + [ruler[2]]
 
 
 	def renderImage(self,id=None,mouse=None):
@@ -340,7 +340,7 @@ class WondCarousel(object):
 		cv2.line(img, p2,tuple(int(p2[i] + ort[i]) for i in xy),c,thickness=1)
 
 	def printInfo(self):
-		id=self.curImg
+		id=self.curID
 		print "Image #%i (%s)" % (id, self.data.loc[id,'imgPath'])
 		print "Rulers:"
 		print self.rulers
@@ -355,7 +355,7 @@ class WondCarousel(object):
 			
 	
 	def statsFromLines(self,id=None):
-		id = id or self.curImg
+		id = self.curID if id is None else id
 
 		wLines = self.getwLines(id)
 		rulers = self.getRulers(id)
@@ -451,7 +451,7 @@ def main():
 		lengths2.append(l2)
 		stds1.append(std1)
 		stds2.append(std2)
-		times.append(w.data[id].DateTime.value)
+		times.append(w.data.loc[id].datetime)
 
 	print lengths1
 	print lengths2
