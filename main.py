@@ -615,6 +615,11 @@ def main():
 	prednisone   = [toDatetime("2015-10-02  9:00") + datetime.timedelta(days=n+1) for n in range(len(prednisoneD))]
 	cyclosporine = [toDatetime("2015-10-15  9:00") + datetime.timedelta(days=n+1) for n in range(7*2)]
 	fraxiparine  = [toDatetime("2015-09-28 18:00") + datetime.timedelta(days=n+1) for n in range(7*4)]
+	antibiotica  = [toDatetime("2015-08-27 10:00") + datetime.timedelta(days=n+1) for n in range(5)] #eerste keer
+	antibiotica += [toDatetime("2015-09-22 16:20") + datetime.timedelta(days=n+1) for n in range(7)] #fusidine
+	antibiotica += [toDatetime("2015-09-25 13:40") + datetime.timedelta(days=n+1) for n in range(8)] #huidbacterie
+	antibiotica += [toDatetime("2015-10-14  9:00") + datetime.timedelta(days=n+1) for n in range(8)] #fusidine
+
 
 	#convert everyting to datetime
 	#consults     = [WondCarousel.toTimestamp(toDatetime(c[0])) for c in consults]
@@ -622,6 +627,7 @@ def main():
 	prednisone   = [WondCarousel.toTimestamp(d) for d in prednisone]
 	cyclosporine = [WondCarousel.toTimestamp(d) for d in cyclosporine]
 	fraxiparine  = [WondCarousel.toTimestamp(d) for d in fraxiparine]
+	antibiotica  = [WondCarousel.toTimestamp(d) for d in antibiotica]
 
 
 	ax1 = plt.gca()
@@ -629,23 +635,26 @@ def main():
 
 	for cType in set([c[1] for c in consults]):
 		t = [WondCarousel.toTimestamp(toDatetime(c[0])) for c in consults if c[1] == cType]
-		ax2.scatter(t,[10]*len(t),color=colors[cType],label=cType)
+		ax2.scatter(t,[0]*len(t),color=colors[cType],label=cType)
 
-	ax2.scatter(prednisone,prednisoneD,color='b',marker='.')
+	ax2.scatter(antibiotica,[10]*len(antibiotica),color='brown',marker='.')
 	ax2.scatter(fraxiparine,[20]*len(fraxiparine),color='g',marker='.')
 	ax2.scatter(cyclosporine,[30]*len(cyclosporine),color='y',marker='.')
+	ax2.scatter(prednisone,prednisoneD,color='b',marker='.')
 
 	#labels
-	plt.annotate('dokters bezoeken' , xy=(1, 10), xytext=(20, 0), 
+	plt.annotate('dokters bezoeken' , xy=(1, 0), xytext=(20, 0), 
                  xycoords=('axes fraction', 'data'), textcoords='offset points')
-	plt.annotate('fraxiparine' , xy=(1, 20), xytext=(20, 0), color='g',
+	plt.annotate('antibiotica' , xy=(1, 10), xytext=(20, 0), color='brown',
                  xycoords=('axes fraction', 'data'), textcoords='offset points')
-	plt.annotate('cyclosporine' , xy=(1, 30), xytext=(20, 0), color='y',
+	plt.annotate('fraxiparine (0,3 ml)' , xy=(1, 20), xytext=(20, 0), color='g',
+                 xycoords=('axes fraction', 'data'), textcoords='offset points')
+	plt.annotate('cyclosporine (100 mg)' , xy=(1, 30), xytext=(20, 0), color='y',
                  xycoords=('axes fraction', 'data'), textcoords='offset points')
 	plt.annotate('prednisone (mg)' , xy=(1, 50), xytext=(20, 0), color='b',
                  xycoords=('axes fraction', 'data'), textcoords='offset points')
 
-	ax2.set_ylim([0,200])
+	ax2.set_ylim([-10,200])
 	ax2.set_yticks([40,50,60])
 	ax2.yaxis.label.set_color('b')
 	ax2.tick_params(axis='y', colors='b')
@@ -654,8 +663,6 @@ def main():
 	plt.legend(scatterpoints = 1,bbox_to_anchor=(1.05, 0.03), loc=2, borderaxespad=0.,fontsize=10,frameon=False)
 	plt.tight_layout()
 	plt.savefig('graph.png')
-
-
 
 	
 
