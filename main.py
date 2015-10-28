@@ -89,7 +89,8 @@ class WondCarousel(object):
 			self.data = self.data.append(newData,ignore_index=True)
 			print "Loaded %i new images" % len(newData)
 
-		self.data['datetime'] = pd.to_datetime(self.data['datetime'])
+		self.data['datetime']  = pd.to_datetime(self.data['datetime'])
+		self.data['timestamp'] = self.data['datetime'].apply(WondCarousel.toTimestamp)
 		self.data = self.data.sort('datetime')
 		self.data.reset_index()
 
@@ -410,7 +411,8 @@ class WondCarousel(object):
 		lengths2 = []
 		stds1 = []
 		stds2 = []
-		datetimes = []
+		datetimes  = []
+		timestamps = []
 
 		if fig is None:
 			fig = plt.figure()
@@ -423,8 +425,8 @@ class WondCarousel(object):
 			stds1.append(std1)
 			stds2.append(std2)
 			datetimes.append(self.data.loc[cid].datetime)
+			timestamps.append(self.data.loc[cid].timestamp)
 
-		timestamps = [WondCarousel.toTimestamp(d) for d in datetimes]
 
 		plt.errorbar(timestamps,lengths1, yerr=stds1, marker='.', label='lengte',  color='purple')
 		plt.errorbar(timestamps,lengths2, yerr=stds2, marker='.', label='breedte', color='pink')
@@ -440,7 +442,7 @@ class WondCarousel(object):
 				t = timestamps[ix]
 			else:
 				d = self.data.loc[self.curID].datetime
-				t = WondCarousel.toTimestamp(d)
+				t = self.data.loc[self.curID].timestamp
 
 			#plot line and text for the current datetime
 			plt.plot([t,t],plt.ylim(),color='green')
@@ -478,10 +480,9 @@ class WondCarousel(object):
 
 
 	def clickGraph(self,event):
-		#TODO: Find closest x
-		#print 'button=%d, x=%d, y=%d, xdata=%f, ydata=%f'%(	event.button, event.x, event.y, event.xdata, event.ydata)
+		#Find closest x
 		if event.xdata is not None:
-			timestamps = self.data.loc[self.IDlist,'datetime'].apply(WondCarousel.toTimestamp).values
+			timestamps = self.data.loc[self.IDlist,'timestamp'].values
 			closestIx = min(range(len(timestamps)), key=lambda i: abs(timestamps[i]-event.xdata))
 			self.setCurID(self.IDlist[closestIx])
 		
