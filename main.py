@@ -482,15 +482,9 @@ class WondCarousel(object):
 		#print 'button=%d, x=%d, y=%d, xdata=%f, ydata=%f'%(	event.button, event.x, event.y, event.xdata, event.ydata)
 		if event.xdata is not None:
 			timestamps = self.data.loc[self.IDlist,'datetime'].apply(WondCarousel.toTimestamp).values
-			closestID = min(range(len(timestamps)), key=lambda i: abs(timestamps[i]-event.xdata))
-			self.setCurID(closestID)
-
-		#TODO: BUGS: still catches ignored images, there seems to be an offset, it does not select the date that was just clicked	
-
-
+			closestIx = min(range(len(timestamps)), key=lambda i: abs(timestamps[i]-event.xdata))
+			self.setCurID(self.IDlist[closestIx])
 		
-
-
 
 	def run(self):
 		"""
