@@ -240,21 +240,21 @@ class WondCarousel(object):
 
 
 	def saveCurLines(self):
-		for n, ruler in enumerate(self.rulers):
-			#Flatten the rulers first
+		for n in range(self.maxRulers):
 			cols = WondCarousel.getRulerCols(n)
-			ruler =  list(ruler[0]) + list(ruler[1]) + [ruler[2]]
-			for i in range(len(cols)):
-			 	self.data.loc[self.curID,cols[i]] = ruler[i]
-			#self.data.loc[self.curID,cols] = list(ruler[0]) + list(ruler[1]) + [ruler[2]]
+			if n < len(self.rulers):
+				ruler = self.rulers[n]
+				self.data.loc[self.curID,cols] = list(ruler[0]) + list(ruler[1]) + [ruler[2]]
+			else:
+				self.data.loc[self.curID,cols] = [None]*len(cols)
 
-		for n, line in enumerate(self.wLines):
-			#Flatten the rulers first
+		for n in range(self.maxwLines):
 			cols = WondCarousel.getwLineCols(n)
-			line = list(line[0]) + list(line[1])
-			for i in range(len(cols)):
-			 	self.data.loc[self.curID,cols[i]] = line[i]
-			#self.data.loc[self.curID,cols] = list(ruler[0]) + list(ruler[1]) + [ruler[2]]
+			if n < len(self.wLines):
+				line = self.wLines[n]
+				self.data.loc[self.curID,cols] = list(line[0]) + list(line[1])
+			else:
+				self.data.loc[self.curID,cols] = [None]*len(cols)
 
 
 	def renderImage(self,id=None,mouse=None):
@@ -443,10 +443,12 @@ class WondCarousel(object):
 				plt.errorbar(timestamps[ix],lengths2[ix],yerr=stds2[ix],marker='.',color='green')
 				d = datetimes[ix]
 				t = timestamps[ix]
-				plt.annotate('%0.2f' % lengths1[ix], xy=(0, lengths1[ix]), xytext=(-25, 0), 
-                 xycoords=('axes fraction', 'data'), textcoords='offset points',color='purple')
-				plt.annotate('%0.2f' % lengths2[ix], xy=(0, lengths2[ix]), xytext=(-25, 0), 
-                 xycoords=('axes fraction', 'data'), textcoords='offset points',color='pink')
+				plt.annotate("", xy=(0, lengths1[ix]), xytext=(-25, 0), 
+					xycoords=('axes fraction', 'data'), textcoords='offset points', arrowprops=dict(arrowstyle="->",
+					connectionstyle="arc3",color='purple'))
+				plt.annotate("", xy=(0, lengths2[ix]), xytext=(-25, 0), 
+					xycoords=('axes fraction', 'data'), textcoords='offset points', arrowprops=dict(arrowstyle="->",
+					connectionstyle="arc3",color='pink'))
 			else:
 				d = self.data.loc[self.curID].datetime
 				t = self.data.loc[self.curID].timestamp
@@ -527,10 +529,12 @@ class WondCarousel(object):
 				elif k in self.keys['resetwLine']:
 					self.wLines = []
 					self.saveCurLines()
+					self.updateGraph()
 					self.resetLines = False
 				elif k in self.keys['resetRuler']:
 					self.rulers = []
 					self.saveCurLines()
+					self.updateGraph()
 					self.resetLines = False
 				else:
 					print "please press [r] for rulers, [w] for wlines, [esc] to cancel"
@@ -570,7 +574,6 @@ def main():
 	w = WondCarousel()
 	w.run()
 
-	#TODO: BUG: when deleting rulers and wlines graph doesn't update
 	# w.plotGraph()
 	# plt.show()
 	#print w.data
