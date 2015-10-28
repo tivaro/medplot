@@ -42,6 +42,7 @@ class WondCarousel(object):
 		self.rulers		 = []
 		self.wLines		 = []
 		self.curTicks    = None
+		self.showGraph   = False
 
 		self.loadData()
 
@@ -108,9 +109,7 @@ class WondCarousel(object):
 			if len(notDone) > 0:
 				self.curID = notDone[0]
 		except:
-			pass	
-
-		print self.data
+			pass
 
 	@staticmethod
 	def getRulerCols(n):
@@ -390,7 +389,7 @@ class WondCarousel(object):
 		else:
 			return False
 
-	def plotGraph(self):
+	def plotGraph(self,id=None):
 		ids = self.getDoneList()
 		lengths1 = []
 		lengths2 = []
@@ -398,28 +397,70 @@ class WondCarousel(object):
 		stds2 = []
 		datetimes = []
 
-		for id in ids:
-			l1,std1,l2,std2 = self.statsFromLines(id)
+		fig = plt.figure()
+		ax = plt.gca()
+
+		for cid in ids:
+			l1,std1,l2,std2 = self.statsFromLines(cid)
 			lengths1.append(l1)
 			lengths2.append(l2)
 			stds1.append(std1)
 			stds2.append(std2)
-			datetimes.append(self.data.loc[id].datetime)
+			datetimes.append(self.data.loc[cid].datetime)
 
 		timestamps = [time.mktime(d.timetuple()) for d in datetimes]
 
-		plt.errorbar(timestamps,lengths1,yerr=stds1,marker='.',label='lengte',color='purple')
-		plt.errorbar(timestamps,lengths2,yerr=stds2,marker='.',label='breedte',color='pink')
+		plt.errorbar(timestamps,lengths1, yerr=stds1, marker='.', label='lengte',  color='purple')
+		plt.errorbar(timestamps,lengths2, yerr=stds2, marker='.', label='breedte', color='pink')
 		
 
-		ax = plt.gca()
+		#Hightlight a specific image
+		if id:
+			if id in ids:
+				ix = np.where(ids == id)[0][0]
+				print ix,
+				plt.errorbar(timestamps[ix],lengths1[ix],yerr=stds1[ix],marker='.',color='green')
+				plt.errorbar(timestamps[ix],lengths2[ix],yerr=stds2[ix],marker='.',color='green')
+				d = datetimes[ix]
+				t = timestamps[ix]
+			else:
+				d = self.data.loc[self.curID].datetime
+				t = time.mktime(d.timetuple())
+
+			#plot line and text for the current datetime
+			plt.plot([t,t],plt.ylim(),color='green')
+			ax.text(0.95, 0.01, d.strftime('%Y-%m-%d %H:%M:%S'),
+			verticalalignment='bottom', horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=10)
+
+
 		xTicks  =  ax.get_xticks()
 		xLabels = [datetime.datetime.fromtimestamp(x).strftime('%Y-%m-%d') for x in xTicks]
-		plt.xticks(xTicks, xLabels, rotation=30)
+		plt.xticks(xTicks, xLabels, rotation=30)		
 
 		plt.ylabel('Grootte (cm)')
 		plt.legend(loc=2)
-		plt.tight_layout()
+
+		return fig
+
+	def toggleGraph(self):
+		if self.showGraph:
+			self.showGraph = False
+			cv2.destroyWindow('graph')
+		else:
+			self.showGraph = True
+			cv2.namedWindow('graph',cv2.WINDOW_AUTOSIZE)
+			self.updateGraph()
+			#TODO: set 'image' to active 
+			
+		pass	
+
+	def updateGraph(self):
+		if self.showGraph:
+			fig = self.plotGraph(id=self.curID)
+			plt.savefig('graph.png')
+			plt.close(fig)
+			img = cv2.imread('graph.png')
+			cv2.imshow('graph',img)	
 		
 
 
@@ -467,10 +508,11 @@ class WondCarousel(object):
 			elif k in self.keys['ruler-'] and self.curTicks > 1:
 				self.curTicks -= 1
 			elif k in self.keys['graph']:
-				self.plotGraph()
-				plt.show()
+				self.toggleGraph()
 			else:
 				print "Key %i not recognised" % k
+
+			self.updateGraph()	
 
 			#TODO: Add key to remove:> then: rulers? or lines?
 
@@ -478,10 +520,8 @@ def main():
 	w = WondCarousel()
 	w.run()
 
-	w.plotGraph()
-	plt.show()
-
-
+	# w.plotGraph()
+	# plt.show()
 	#print w.data
 	
 
