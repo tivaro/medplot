@@ -45,7 +45,7 @@ class WondCarousel(object):
 		self.rulers		 = []
 		self.wLines		 = []
 		self.curTicks    = None
-		self.showGraph   = False
+		self.graphFig    = None
 		self.resetLines  = False
 
 		self.loadData()
@@ -393,7 +393,7 @@ class WondCarousel(object):
 		else:
 			return False
 
-	def plotGraph(self,id=None):
+	def plotGraph(self,id=None,fig=None):
 		ids = self.getDoneList()
 		lengths1 = []
 		lengths2 = []
@@ -401,7 +401,8 @@ class WondCarousel(object):
 		stds2 = []
 		datetimes = []
 
-		fig = plt.figure()
+		if fig is None:
+			fig = plt.figure()
 		ax = plt.gca()
 
 		for cid in ids:
@@ -422,7 +423,6 @@ class WondCarousel(object):
 		if id:
 			if id in ids:
 				ix = np.where(ids == id)[0][0]
-				print ix,
 				plt.errorbar(timestamps[ix],lengths1[ix],yerr=stds1[ix],marker='.',color='green')
 				plt.errorbar(timestamps[ix],lengths2[ix],yerr=stds2[ix],marker='.',color='green')
 				d = datetimes[ix]
@@ -447,24 +447,23 @@ class WondCarousel(object):
 		return fig
 
 	def toggleGraph(self):
-		if self.showGraph:
-			self.showGraph = False
-			cv2.destroyWindow('graph')
-		else:
-			self.showGraph = True
-			cv2.namedWindow('graph',cv2.WINDOW_AUTOSIZE)
+		if self.graphFig is None:
+			self.graphFig = plt.figure()
 			self.updateGraph()
-			#TODO: set 'image' to active 
+			plt.show(block=False)
+		else:	
+			plt.close(self.graphFig)
+		 	self.graphFig = None
 			
 		pass	
 
 	def updateGraph(self):
-		if self.showGraph:
-			fig = self.plotGraph(id=self.curID)
-			plt.savefig('graph.png')
-			plt.close(fig)
-			img = cv2.imread('graph.png')
-			cv2.imshow('graph',img)	
+		if self.graphFig is not None:
+			fig = self.graphFig
+			fig.clear()
+			self.plotGraph(id=self.curID,fig=fig)
+			plt.draw()
+
 		
 
 
