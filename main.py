@@ -24,15 +24,18 @@ class WondCarousel(object):
 		self.maxwLines  = 2
 		self.defaultTicks=5
 		self.keys = {
-				'next':[63235], #>
-				'prev':[63234], #< 
+				'next':[63235], # arrow>
+				'prev':[63234], # arrow< 
 				'escape':[27,113], #esc, q
 				'ruler+':[61], #+
 				'ruler-':[45], #-
 				'ignore':[13], #return
 				'info':[105], #i
 				'save':[115], #s
-				'graph':[103] #g
+				'graph':[103], #g
+				'reset':[127], #backspace
+				'resetRuler':[114], #r
+				'resetwLine':[119], #w
 		}
 
 		#initialise variables
@@ -43,6 +46,7 @@ class WondCarousel(object):
 		self.wLines		 = []
 		self.curTicks    = None
 		self.showGraph   = False
+		self.resetLines  = False
 
 		self.loadData()
 
@@ -488,29 +492,48 @@ class WondCarousel(object):
 			#register which key was pressed
 			k = cv2.waitKey(0)
 
-			if k in self.keys['escape']:
-				if self.bufferPoint:
-					self.bufferPoint = None
+			if self.resetLines:
+				if k in self.keys['escape']:
+					self.resetLines = False
+				elif k in self.keys['resetwLine']:
+					self.wLines = []
+					self.saveCurLines()
+					self.resetLines = False
+				elif k in self.keys['resetRuler']:
+					self.rulers = []
+					self.saveCurLines()
+					self.resetLines = False
 				else:
-					running=False
-			elif k in self.keys['save']:
-				self.saveData()
-			elif k in self.keys['info']:
-				self.printInfo()
-			elif k in self.keys['next']:
-				self.nextImg()
-			elif k in self.keys['prev']:
-				self.prevImg()
-			elif k in self.keys['ignore']:
-				self.ignoreImg()
-			elif k in self.keys['ruler+']:
-				self.curTicks += 1
-			elif k in self.keys['ruler-'] and self.curTicks > 1:
-				self.curTicks -= 1
-			elif k in self.keys['graph']:
-				self.toggleGraph()
+					print "please press [r] for rulers, [w] for wlines, [esc] to cancel"
+
 			else:
-				print "Key %i not recognised" % k
+
+				if k in self.keys['reset'] and (len(self.wLines) > 0 or len(self.rulers) > 0):
+					self.resetLines = True
+					print "RESET? press [r] for rulers, [w] for wlines, [esc] to cancel"
+				elif k in self.keys['escape']:
+					if self.bufferPoint:
+						self.bufferPoint = None
+					else:
+						running=False
+				elif k in self.keys['save']:
+					self.saveData()
+				elif k in self.keys['info']:
+					self.printInfo()
+				elif k in self.keys['next']:
+					self.nextImg()
+				elif k in self.keys['prev']:
+					self.prevImg()
+				elif k in self.keys['ignore']:
+					self.ignoreImg()
+				elif k in self.keys['ruler+']:
+					self.curTicks += 1
+				elif k in self.keys['ruler-'] and self.curTicks > 1:
+					self.curTicks -= 1
+				elif k in self.keys['graph']:
+					self.toggleGraph()
+				else:
+					print "Key %i not recognised" % k
 
 			self.updateGraph()	
 
