@@ -80,7 +80,7 @@ class WondCarousel(object):
 								'ignore':0})
 
 		if len(newData) > 0:
-			self.data = self.data.append(newData)
+			self.data = self.data.append(newData,ignore_index=True)
 			print "Loaded %i new images" % len(newData)
 
 		self.data['datetime'] = pd.to_datetime(self.data['datetime'])
@@ -107,7 +107,9 @@ class WondCarousel(object):
 			if len(notDone) > 0:
 				self.curID = notDone[0]
 		except:
-			pass
+			pass	
+
+		print self.data
 
 	@staticmethod
 	def getRulerCols(n):
