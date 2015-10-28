@@ -371,6 +371,8 @@ class WondCarousel(object):
 		print self.wLines
 		print "Stats:"
 		print self.statsFromLines()
+		print "Date"
+		print self.data.loc[id,'datetime']
 
 	def saveData(self):
 		self.data.to_csv(self.dataPath)
@@ -468,7 +470,7 @@ class WondCarousel(object):
 		plt.xticks(xTicks, xLabels, rotation=30,ha='right')
 
 		plt.ylabel('Grootte (cm)')
-		plt.legend(loc=2)
+		plt.legend(loc=2,numpoints=1)
 
 		return fig
 
@@ -577,6 +579,84 @@ def main():
 	# w.plotGraph()
 	# plt.show()
 	#print w.data
+
+	#Data van de behandeling!
+	from matplotlib import gridspec
+	fig = plt.figure(figsize=(10,6))
+	gs = gridspec.GridSpec(1, 2, width_ratios=[3, 1]) 
+	ax0 = plt.subplot(gs[0])
+	w.plotGraph(fig=fig)
+
+	def toDatetime(string):
+		return datetime.datetime.strptime(string, "%Y-%m-%d %H:%M")
+	consults     = [("2015-08-27 10:00",'huisarts'), #nijmegen
+					("2015-08-31 10:40",'huisarts'), #mertens
+					("2015-09-10  8:40",'huisarts'), #zijlstra
+					("2015-09-14 16:15",'huisarts'), #observator
+					("2015-09-17 15:30",'chirurgie'), #wondpoli
+					("2015-09-22 16:20",'huisarts'), #mertens voor plekken
+					("2015-09-25 13:40",'chirurgie'), #duplex onderzoek + chirurg
+					("2015-09-28 11:20",'internist'), #internist
+					("2015-10-01  9:20",'chirurgie'), #wondpoli
+					("2015-10-02  9:30",'dermatoloog'), #dermatoloog
+					("2015-10-05  9:10",'internist'), #internist + wondpoli
+					("2015-10-12  9:10",'chirurgie'), #chirurgie
+					("2015-10-14  9:00",'dermatoloog'), #dermatoloog
+					("2015-10-22 15:00",'internist'), #internist
+					("2015-10-26 14:30",'huisarts'), #huisarts
+					("2015-10-28  9:00",'dermatoloog') #dermatoloog
+					]
+	colors = {'huisarts':'r',
+			  'chirurgie':'lightsalmon',
+			  'internist':'mediumaquamarine',
+			  'dermatoloog':'brown'}
+
+	prednisoneD  = [50]*7 + [40]*7 + [60]*14
+	prednisone   = [toDatetime("2015-10-02  9:00") + datetime.timedelta(days=n+1) for n in range(len(prednisoneD))]
+	cyclosporine = [toDatetime("2015-10-15  9:00") + datetime.timedelta(days=n+1) for n in range(7*2)]
+	fraxiparine  = [toDatetime("2015-09-28 18:00") + datetime.timedelta(days=n+1) for n in range(7*4)]
+
+	#convert everyting to datetime
+	#consults     = [WondCarousel.toTimestamp(toDatetime(c[0])) for c in consults]
+	#consult_cs   = [d[1] for d in consults]
+	prednisone   = [WondCarousel.toTimestamp(d) for d in prednisone]
+	cyclosporine = [WondCarousel.toTimestamp(d) for d in cyclosporine]
+	fraxiparine  = [WondCarousel.toTimestamp(d) for d in fraxiparine]
+
+
+	ax1 = plt.gca()
+	ax2 = ax1.twinx()
+
+	for cType in set([c[1] for c in consults]):
+		t = [WondCarousel.toTimestamp(toDatetime(c[0])) for c in consults if c[1] == cType]
+		ax2.scatter(t,[10]*len(t),color=colors[cType],label=cType)
+
+	ax2.scatter(prednisone,prednisoneD,color='b',marker='.')
+	ax2.scatter(fraxiparine,[20]*len(fraxiparine),color='g',marker='.')
+	ax2.scatter(cyclosporine,[30]*len(cyclosporine),color='y',marker='.')
+
+	#labels
+	plt.annotate('dokters bezoeken' , xy=(1, 10), xytext=(20, 0), 
+                 xycoords=('axes fraction', 'data'), textcoords='offset points')
+	plt.annotate('fraxiparine' , xy=(1, 20), xytext=(20, 0), color='g',
+                 xycoords=('axes fraction', 'data'), textcoords='offset points')
+	plt.annotate('cyclosporine' , xy=(1, 30), xytext=(20, 0), color='y',
+                 xycoords=('axes fraction', 'data'), textcoords='offset points')
+	plt.annotate('prednisone (mg)' , xy=(1, 50), xytext=(20, 0), color='b',
+                 xycoords=('axes fraction', 'data'), textcoords='offset points')
+
+	ax2.set_ylim([0,200])
+	ax2.set_yticks([40,50,60])
+	ax2.yaxis.label.set_color('b')
+	ax2.tick_params(axis='y', colors='b')
+
+
+	plt.legend(scatterpoints = 1,bbox_to_anchor=(1.05, 0.03), loc=2, borderaxespad=0.,fontsize=10,frameon=False)
+	plt.tight_layout()
+	plt.savefig('graph.png')
+
+
+
 	
 
 if __name__ == '__main__':
