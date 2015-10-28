@@ -5,6 +5,9 @@ from os import listdir
 import os.path
 from PIL import Image, ExifTags
 from itertools import chain
+import matplotlib
+import matplotlib.pyplot as plt
+import datetime, time
 
 #MAIN PROGRAM!
 
@@ -16,7 +19,7 @@ class WondCarousel(object):
 		self.imgDir     = 'fotos/'
 		self.imgExts    = ['.png','.jpg','.jpeg']
 		self.dataPath   = 'measurements.csv'
-		self.sizeFactor = 4 #2.2
+		self.sizeFactor = 2.8
 		self.maxRulers  = 2
 		self.maxwLines  = 2
 		self.defaultTicks=5
@@ -259,6 +262,8 @@ class WondCarousel(object):
 			else:
 				WondCarousel.addwLine(img,self.bufferPoint, mouse,c=(20,0,240))
 
+		#TODO: add Text of available keys / info		
+
 
 		cv2.imshow('image',img)	
 
@@ -433,6 +438,8 @@ class WondCarousel(object):
 			else:
 				pass
 
+			#TODO: Add key to remove:> then: rulers? or lines?
+
 def main():
 	w = WondCarousel()
 	w.run()
@@ -443,7 +450,7 @@ def main():
 	lengths2 = []
 	stds1 = []
 	stds2 = []
-	times = []
+	datetimes = []
 
 	for id in ids:
 		l1,std1,l2,std2 = w.statsFromLines(id)
@@ -451,15 +458,33 @@ def main():
 		lengths2.append(l2)
 		stds1.append(std1)
 		stds2.append(std2)
-		times.append(w.data.loc[id].datetime)
+		datetimes.append(w.data.loc[id].datetime)
 
-	print lengths1
-	print lengths2
-	print stds1
-	print stds2
-	print times
+	timestamps = matplotlib.dates.date2num(datetimes)	
+	timestamps = [time.mktime(d.timetuple()) for d in datetimes]
+
+	plt.errorbar(timestamps,lengths1,yerr=stds1,marker='.',label='lengte',color='purple')
+	plt.errorbar(timestamps,lengths2,yerr=stds2,marker='.',label='breedte',color='pink')
+
+	#TODO: set x-ticks
+	
+
+	ax = plt.gca()
+	nTicks = 10
 
 
+	xTicks  = np.linspace(*(plt.xlim()+(nTicks,)))
+	xTicks  =  ax.get_xticks()
+	print xTicks[0], xTicks[-1]
+	print datetimes[0].strftime('%Y-%m-%d %H:%M:%S'), datetimes[-1].strftime('%Y-%m-%d %H:%M:%S')
+	xLabels = [datetime.datetime.fromtimestamp(x).strftime('%Y-%m-%d') for x in xTicks]
+	print xLabels
+	plt.xticks(xTicks, xLabels, rotation=30)
+
+	plt.ylabel('Grootte (cm)')
+	plt.legend(loc=2)
+	plt.tight_layout()
+	plt.show()
 
 
 	#print w.data
