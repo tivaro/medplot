@@ -445,11 +445,21 @@ class WondCarousel(object):
 				t = self.data.loc[self.curID].timestamp
 
 			#plot line and text for the current datetime
-			plt.plot([t,t],plt.ylim(),color='green')
-			ax.text(0.95, 0.01, d.strftime('%Y-%m-%d %H:%M:%S'),
-			verticalalignment='bottom', horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=10)
+			#TODO: Location relative to line.
+			xlim = plt.xlim()
+			ylim = plt.ylim()
+			if t > (((xlim[1] - xlim[0]) / 2) + xlim[0]):
+				al = -1
+				align = 'right'
+			else:
+				al = 1
+				align = 'left'
+			plt.plot([t,t],ylim,color='green')
+			ax.text(t+al*0.01*(xlim[1]-xlim[0]), ylim[0]+0.01*(ylim[1]-ylim[0]), d.strftime('%Y-%m-%d %H:%M:%S'),
+			verticalalignment='bottom', horizontalalignment=align, color='green', fontsize=11)
 
 
+		#TODO: correct shift because of rotation
 		xTicks  =  ax.get_xticks()
 		xLabels = [WondCarousel.fromTimestamp(x).strftime('%Y-%m-%d') for x in xTicks]
 		plt.xticks(xTicks, xLabels, rotation=30)		
@@ -554,8 +564,6 @@ class WondCarousel(object):
 					print "Key %i not recognised" % k
 
 			self.updateGraph()	
-
-			#TODO: Add key to remove:> then: rulers? or lines?
 
 def main():
 	w = WondCarousel()
