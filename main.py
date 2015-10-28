@@ -432,22 +432,25 @@ class WondCarousel(object):
 		plt.errorbar(timestamps,lengths2, yerr=stds2, marker='.', label='breedte', color='pink')
 		
 
-		#Hightlight a specific image
+		#Hightlight a specific image in the graph
 		if id:
+			xlim = plt.xlim()
+			ylim = plt.ylim()
+
 			if id in ids:
 				ix = np.where(ids == id)[0][0]
 				plt.errorbar(timestamps[ix],lengths1[ix],yerr=stds1[ix],marker='.',color='green')
 				plt.errorbar(timestamps[ix],lengths2[ix],yerr=stds2[ix],marker='.',color='green')
 				d = datetimes[ix]
 				t = timestamps[ix]
+				plt.annotate('%0.2f' % lengths1[ix], xy=(0, lengths1[ix]), xytext=(-25, 0), 
+                 xycoords=('axes fraction', 'data'), textcoords='offset points',color='purple')
+				plt.annotate('%0.2f' % lengths2[ix], xy=(0, lengths2[ix]), xytext=(-25, 0), 
+                 xycoords=('axes fraction', 'data'), textcoords='offset points',color='pink')
 			else:
 				d = self.data.loc[self.curID].datetime
 				t = self.data.loc[self.curID].timestamp
-
-			#plot line and text for the current datetime
-			#TODO: Location relative to line.
-			xlim = plt.xlim()
-			ylim = plt.ylim()
+			#plot date string, at Location relative to line.
 			if t > (((xlim[1] - xlim[0]) / 2) + xlim[0]):
 				al = -1
 				align = 'right'
@@ -458,11 +461,9 @@ class WondCarousel(object):
 			ax.text(t+al*0.01*(xlim[1]-xlim[0]), ylim[0]+0.01*(ylim[1]-ylim[0]), d.strftime('%Y-%m-%d %H:%M:%S'),
 			verticalalignment='bottom', horizontalalignment=align, color='green', fontsize=11)
 
-
-		#TODO: correct shift because of rotation
 		xTicks  =  ax.get_xticks()
 		xLabels = [WondCarousel.fromTimestamp(x).strftime('%Y-%m-%d') for x in xTicks]
-		plt.xticks(xTicks, xLabels, rotation=30)		
+		plt.xticks(xTicks, xLabels, rotation=30,ha='right')
 
 		plt.ylabel('Grootte (cm)')
 		plt.legend(loc=2)
