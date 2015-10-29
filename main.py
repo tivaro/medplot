@@ -211,8 +211,10 @@ class WondCarousel(object):
 				notDone = self.data[indices].index.values
 			if len(notDone) > 0:
 				return notDone
+			else:
+				return []
 		except:
-			pass
+			return []
 
 	def setCurID(self,id):
 	 	self.curID = id
@@ -470,7 +472,8 @@ class WondCarousel(object):
 		plt.xticks(xTicks, xLabels, rotation=30,ha='right')
 
 		plt.ylabel('Grootte (cm)')
-		plt.legend(loc=2,numpoints=1)
+		if len(ids) > 0:
+			plt.legend(loc=2,numpoints=1)
 
 		return fig
 
@@ -661,11 +664,10 @@ def main():
 
 
 	plt.legend(scatterpoints = 1,bbox_to_anchor=(1.05, 0.03), loc=2, borderaxespad=0.,fontsize=10,frameon=False)
-	plt.tight_layout()
+	fig.set_tight_layout(True)
 	plt.savefig('graph.png')
 
 	
 
 if __name__ == '__main__':
 	main()
-
