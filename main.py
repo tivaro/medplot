@@ -533,7 +533,7 @@ class WondCarousel(object):
 					self.updateGraph()
 					self.resetLines = False
 				else:
-					print "please press [r] for rulers, [w] for wlines, [esc] to cancel"
+					print "please press [r] for rulers, [w] for wlines, [esc] or [q] to cancel"
 
 			else:
 
@@ -557,6 +557,8 @@ class WondCarousel(object):
 					self.ignoreImg()
 				elif k in self.keys['ruler+']:
 					self.curTicks += 1
+					#TODO: call renderImage(mouse=(x,y))
+					#TODO: find out how to get mouse position in opencv / store it manarrly
 				elif k in self.keys['ruler-'] and self.curTicks > 1:
 					self.curTicks -= 1
 				elif k in self.keys['graph']:
@@ -575,6 +577,11 @@ def main():
 	#print w.data
 
 	#Data van de behandeling!
+	plotDiagnostics(w)
+	plt.savefig('graph.png')
+
+
+def plotDiagnostics(w):
 	from matplotlib import gridspec
 	fig = plt.figure(figsize=(10,6))
 	gs = gridspec.GridSpec(1, 2, width_ratios=[3, 1]) 
@@ -654,9 +661,6 @@ def main():
 
 	plt.legend(scatterpoints = 1,bbox_to_anchor=(1.05, 0.03), loc=2, borderaxespad=0.,fontsize=10,frameon=False)
 	fig.set_tight_layout(True)
-	plt.savefig('graph.png')
-
-	
 
 if __name__ == '__main__':
 	main()
