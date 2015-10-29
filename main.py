@@ -165,7 +165,6 @@ class WondCarousel(object):
 				pass
 		return wLines	
 
-					
 
 	def loadRulers(self,id=None):
 		id = self.curID if id is None else id
@@ -223,18 +222,15 @@ class WondCarousel(object):
 
 	def nextImg(self):
 		allowedNext = self.IDlist[self.IDlist > self.curID]
-		#print self.curID, allowedNext[0:20]
 		if len(allowedNext) > 0:
 		 	self.setCurID(allowedNext[0])
 
 	def prevImg(self):
 		allowedPrev = self.IDlist[self.IDlist < self.curID]
-		#print self.curID, allowedPrev[0:20]
 		if len(allowedPrev) > 0:
 			self.setCurID(allowedPrev[-1])
 
 	def ignoreImg(self):
-		#self.data.ignore[self.curID] = 1
 		self.data.loc[self.curID,'ignore'] = 1
 		self.resetIDlist()
 		self.nextImg()
@@ -455,6 +451,7 @@ class WondCarousel(object):
 			else:
 				d = self.data.loc[self.curID].datetime
 				t = self.data.loc[self.curID].timestamp
+
 			#plot date string, at Location relative to line.
 			if t > (((xlim[1] - xlim[0]) / 2) + xlim[0]):
 				al = -1
@@ -510,7 +507,7 @@ class WondCarousel(object):
 		"""
 
 		running = True
-		
+
 		cv2.namedWindow('image',cv2.WINDOW_AUTOSIZE)
 		cv2.setMouseCallback("image", self.mouseCallback)
 
