@@ -211,10 +211,9 @@ class WondCarousel(object):
 				notDone = self.data[indices].index.values
 			if len(notDone) > 0:
 				return notDone
-			else:
-				return []
 		except:
-			return []
+			pass
+		return []
 
 	def setCurID(self,id):
 	 	self.curID = id
@@ -511,13 +510,8 @@ class WondCarousel(object):
 		"""
 
 		running = True
-		#print dir(cv2)
+		
 		cv2.namedWindow('image',cv2.WINDOW_AUTOSIZE)
-		#print cv2.getWindowProperty('image',cv2.WND_PROP_ASPECT_RATIO)
-		#cv2.setWindowProperty('image',cv2.WND_PROP_ASPECT_RATIO,cv2.CV_WINDOW_KEEPRATIO)
-		#print cv2.getWindowProperty('image',cv2.WND_PROP_ASPECT_RATIO)
-		#cv2.namedWindow('graph',cv2.WINDOW_NORMAL)
-		#cv2.namedWindow('controls',cv2.WINDOW_NORMAL)
 		cv2.setMouseCallback("image", self.mouseCallback)
 
 		while running:
@@ -625,8 +619,6 @@ def main():
 
 
 	#convert everyting to datetime
-	#consults     = [WondCarousel.toTimestamp(toDatetime(c[0])) for c in consults]
-	#consult_cs   = [d[1] for d in consults]
 	prednisone   = [WondCarousel.toTimestamp(d) for d in prednisone]
 	cyclosporine = [WondCarousel.toTimestamp(d) for d in cyclosporine]
 	fraxiparine  = [WondCarousel.toTimestamp(d) for d in fraxiparine]
@@ -647,15 +639,15 @@ def main():
 
 	#labels
 	plt.annotate('dokters bezoeken' , xy=(1, 0), xytext=(20, 0), 
-                 xycoords=('axes fraction', 'data'), textcoords='offset points')
+					xycoords=('axes fraction', 'data'), textcoords='offset points')
 	plt.annotate('antibiotica' , xy=(1, 10), xytext=(20, 0), color='brown',
-                 xycoords=('axes fraction', 'data'), textcoords='offset points')
+					xycoords=('axes fraction', 'data'), textcoords='offset points')
 	plt.annotate('fraxiparine (0,3 ml)' , xy=(1, 20), xytext=(20, 0), color='g',
-                 xycoords=('axes fraction', 'data'), textcoords='offset points')
+					xycoords=('axes fraction', 'data'), textcoords='offset points')
 	plt.annotate('cyclosporine (100 mg)' , xy=(1, 30), xytext=(20, 0), color='y',
-                 xycoords=('axes fraction', 'data'), textcoords='offset points')
+					xycoords=('axes fraction', 'data'), textcoords='offset points')
 	plt.annotate('prednisone (mg)' , xy=(1, 50), xytext=(20, 0), color='b',
-                 xycoords=('axes fraction', 'data'), textcoords='offset points')
+					xycoords=('axes fraction', 'data'), textcoords='offset points')
 
 	ax2.set_ylim([-10,200])
 	ax2.set_yticks([40,50,60])
