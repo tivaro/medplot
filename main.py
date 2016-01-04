@@ -592,6 +592,17 @@ def plotDiagnostics(w):
 
 	def toDatetime(string):
 		return datetime.datetime.strptime(string, "%Y-%m-%d %H:%M")
+
+	def daysRange(date1,date2=None):
+		#returns a range of datetimes for each day in between X
+		if not date2:
+			date2 = datetime.datetime.now()
+		else:
+			date2 = toDatetime(date2)
+		Ndays = (date2 - toDatetime(date1)).days
+		return [toDatetime(date1) + datetime.timedelta(days=n) for n in range(Ndays)]
+		
+
 	consults     = [("2015-08-27 10:00",'huisarts'), #nijmegen
 					("2015-08-31 10:40",'huisarts'), #mertens
 					("2015-09-10  8:40",'huisarts'), #zijlstra
@@ -608,7 +619,13 @@ def plotDiagnostics(w):
 					("2015-10-22 15:00",'internist'), #internist
 					("2015-10-26 14:30",'huisarts'), #huisarts
 					("2015-10-28  9:00",'dermatoloog'), #dermatoloog
-					("2015-10-30  9:30",'dermatoloog-vu') #dermatoloog VU
+					("2015-10-30  9:30",'dermatoloog-vu'), #dermatoloog VU
+					("2015-11-18  14:00",'dermatoloog-vu'), #dermatoloog VU, afbouwen prednisone
+					("2015-11-30   9:00",'dermatoloog-vu'), #dermatoloog VU, Lisa mee, start cellcept
+					("2015-12-10   9:00",'dermatoloog-vu'), #dermatoloog VU, dermofate zalf
+					("2015-12-21   8:50",'dermatoloog-vu'), #dermatoloog VU
+					("2015-12-29  13:30",'huisarts'), #dermatoloog VU
+					("2016-01-04   9:05",'dermatoloog-vu') #dermatoloog VU
 					]
 	colors = {'huisarts':'r',
 			  'chirurgie':'lightsalmon',
@@ -616,22 +633,46 @@ def plotDiagnostics(w):
 			  'dermatoloog':'lightblue',
 			  'dermatoloog-vu':'pink'}
 
-	prednisoneD  = [50]*7 + [40]*7 + [60]*33
-	prednisone   = [toDatetime("2015-10-02  9:00") + datetime.timedelta(days=n+1) for n in range(len(prednisoneD))]
-	cyclosporine = [toDatetime("2015-10-15  9:00") + datetime.timedelta(days=n+1) for n in range(7*4+6)]
-	fraxiparine  = [toDatetime("2015-09-28 18:00") + datetime.timedelta(days=n+1) for n in range(7*4)]
-	antibiotica  = [toDatetime("2015-08-27 10:00") + datetime.timedelta(days=n+1) for n in range(5)] #eerste keer
-	antibiotica += [toDatetime("2015-09-22 16:20") + datetime.timedelta(days=n+1) for n in range(7)] #fusidine
-	antibiotica += [toDatetime("2015-09-25 13:40") + datetime.timedelta(days=n+1) for n in range(8)] #huidbacterie
-	antibiotica += [toDatetime("2015-10-14  9:00") + datetime.timedelta(days=n+1) for n in range(6)] #zilversulfadiasine
-	antibiotica += [toDatetime("2015-10-23  9:00") + datetime.timedelta(days=n+1) for n in range(7)] #fusidine
 
+	def datesDoseRange(tripleList):
+		medDates = []
+		medDoses = []
+		for date1,date2,dose in tripleList:
+			medDates = medDates  + daysRange(date1, date2)
+			medDoses = medDoses + [dose] * (len(medDates)-len(medDoses))
+		return medDates, medDoses
+
+	prednisone, prednisoneD = datesDoseRange([
+					("2015-10-02  9:00","2015-10-09  9:00", 50),
+					("2015-10-10  9:00","2015-10-17  9:00", 40),
+					("2015-10-18  9:00","2015-11-18  9:00", 60),
+					("2015-11-18  9:00","2015-11-25  9:00", 50),
+					("2015-11-25  9:00",None, 40)
+					])
+
+	cellcept, cellceptD = datesDoseRange([
+					("2015-11-30  9:00","2015-12-07  9:00", 80),
+					("2015-12-07  9:00","2015-12-14  9:00", 90),
+					("2015-12-14  9:00","2015-12-21  9:00", 100),
+					("2015-12-21  9:00", None, 110)
+					])
+
+	fraxiparine  = [toDatetime("2015-09-28 18:00") + datetime.timedelta(days=n) for n in range(7*4)]
+	antibiotica  = [toDatetime("2015-08-27 10:00") + datetime.timedelta(days=n) for n in range(5)] #eerste keer
+	antibiotica += [toDatetime("2015-09-22 16:20") + datetime.timedelta(days=n) for n in range(7)] #fusidine
+	antibiotica += [toDatetime("2015-09-25 13:40") + datetime.timedelta(days=n) for n in range(8)] #huidbacterie
+	antibiotica += [toDatetime("2015-10-14  9:00") + datetime.timedelta(days=n) for n in range(6)] #zilversulfadiasine
+	antibiotica += [toDatetime("2015-10-23  9:00") + datetime.timedelta(days=n) for n in range(7)] #fusidine
+	cyclosporine = daysRange("2015-10-18  9:00","2015-11-18  9:00")
+	calcichew    = daysRange("2015-11-13  9:00")
 
 	#convert everyting to datetime
 	prednisone   = [WondCarousel.toTimestamp(d) for d in prednisone]
 	cyclosporine = [WondCarousel.toTimestamp(d) for d in cyclosporine]
 	fraxiparine  = [WondCarousel.toTimestamp(d) for d in fraxiparine]
 	antibiotica  = [WondCarousel.toTimestamp(d) for d in antibiotica]
+	calcichew    = [WondCarousel.toTimestamp(d) for d in calcichew]
+	cellcept     = [WondCarousel.toTimestamp(d) for d in cellcept]
 
 
 	ax1 = plt.gca()
@@ -645,6 +686,8 @@ def plotDiagnostics(w):
 	ax2.scatter(fraxiparine,[20]*len(fraxiparine),color='g',marker='.')
 	ax2.scatter(cyclosporine,[30]*len(cyclosporine),color='y',marker='.')
 	ax2.scatter(prednisone,prednisoneD,color='b',marker='.')
+	ax2.scatter(calcichew,[70]*len(calcichew),color='lightblue',marker='.')
+	ax2.scatter(cellcept,cellceptD,color='b',marker='.')
 
 	#labels
 	plt.annotate('dokters bezoeken' , xy=(1, 0), xytext=(20, 0), 
@@ -656,6 +699,8 @@ def plotDiagnostics(w):
 	plt.annotate('cyclosporine (100 mg)' , xy=(1, 30), xytext=(20, 0), color='y',
 					xycoords=('axes fraction', 'data'), textcoords='offset points')
 	plt.annotate('prednisone (mg)' , xy=(1, 50), xytext=(20, 0), color='b',
+					xycoords=('axes fraction', 'data'), textcoords='offset points')
+	plt.annotate('calcichew' , xy=(1, 70), xytext=(20, 0), color='lightblue',
 					xycoords=('axes fraction', 'data'), textcoords='offset points')
 
 	ax2.set_ylim([-10,200])
