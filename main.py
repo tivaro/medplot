@@ -608,12 +608,13 @@ def plotDiagnostics(w):
 					("2015-10-22 15:00",'internist'), #internist
 					("2015-10-26 14:30",'huisarts'), #huisarts
 					("2015-10-28  9:00",'dermatoloog'), #dermatoloog
-					("2015-10-30  9:30",'dermatoloog') #dermatoloog VU
+					("2015-10-30  9:30",'dermatoloog-vu') #dermatoloog VU
 					]
 	colors = {'huisarts':'r',
 			  'chirurgie':'lightsalmon',
 			  'internist':'mediumaquamarine',
-			  'dermatoloog':'lightblue'}
+			  'dermatoloog':'lightblue',
+			  'dermatoloog-vu':'pink'}
 
 	prednisoneD  = [50]*7 + [40]*7 + [60]*33
 	prednisone   = [toDatetime("2015-10-02  9:00") + datetime.timedelta(days=n+1) for n in range(len(prednisoneD))]
