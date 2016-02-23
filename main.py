@@ -585,7 +585,7 @@ def main():
 
 def plotDiagnostics(w):
 	from matplotlib import gridspec
-	fig = plt.figure(figsize=(10,6))
+	fig = plt.figure(figsize=(11,6))
 	gs = gridspec.GridSpec(1, 2, width_ratios=[3, 1]) 
 	ax0 = plt.subplot(gs[0])
 	w.plotGraph(fig=fig)
@@ -632,6 +632,12 @@ def plotDiagnostics(w):
 			  'internist':'mediumaquamarine',
 			  'dermatoloog':'lightblue',
 			  'dermatoloog-vu':'pink'}
+	markers = {'huisarts':'+',
+			  'chirurgie':'.',
+			  'internist':'o',
+			  'dermatoloog':'*',
+			  'dermatoloog-vu':'*'}
+
 
 
 	def datesDoseRange(tripleList):
@@ -647,14 +653,17 @@ def plotDiagnostics(w):
 					("2015-10-10  9:00","2015-10-17  9:00", 40),
 					("2015-10-18  9:00","2015-11-18  9:00", 60),
 					("2015-11-18  9:00","2015-11-25  9:00", 50),
-					("2015-11-25  9:00",None, 40)
+					("2015-11-25  9:00","2016-01-28  9:00", 40),
+					("2016-01-28  9:00","2016-02-04  9:00", 50),
+					("2016-02-04  9:00", None, 60)
 					])
 
 	cellcept, cellceptD = datesDoseRange([
-					("2015-11-30  9:00","2015-12-07  9:00", 80),
-					("2015-12-07  9:00","2015-12-14  9:00", 90),
-					("2015-12-14  9:00","2015-12-21  9:00", 100),
-					("2015-12-21  9:00", None, 110)
+					("2015-11-30  9:00","2015-12-07  9:00", 70),
+					("2015-12-07  9:00","2015-12-14  9:00", 80),
+					("2015-12-14  9:00","2015-12-21  9:00", 90),
+					("2015-12-21  9:00","2016-01-28  9:00", 100),
+					("2016-01-28  9:00", None, 110)
 					])
 
 	fraxiparine  = [toDatetime("2015-09-28 18:00") + datetime.timedelta(days=n) for n in range(7*4)]
@@ -680,27 +689,30 @@ def plotDiagnostics(w):
 
 	for cType in set([c[1] for c in consults]):
 		t = [WondCarousel.toTimestamp(toDatetime(c[0])) for c in consults if c[1] == cType]
-		ax2.scatter(t,[0]*len(t),color=colors[cType],label=cType)
+		ax2.scatter(t,[0]*len(t),color=colors[cType],label=cType, marker=markers[cType])
 
 	ax2.scatter(antibiotica,[10]*len(antibiotica),color='brown',marker='.')
+	ax2.scatter(calcichew,[10]*len(calcichew),color='lightblue',marker='.')
 	ax2.scatter(fraxiparine,[20]*len(fraxiparine),color='g',marker='.')
 	ax2.scatter(cyclosporine,[30]*len(cyclosporine),color='y',marker='.')
 	ax2.scatter(prednisone,prednisoneD,color='b',marker='.')
-	ax2.scatter(calcichew,[70]*len(calcichew),color='lightblue',marker='.')
-	ax2.scatter(cellcept,cellceptD,color='b',marker='.')
+	ax2.scatter(cellcept,cellceptD,color='r',marker='.')
 
 	#labels
-	plt.annotate('dokters bezoeken' , xy=(1, 0), xytext=(20, 0), 
+	yOffset = 30
+	plt.annotate('dokters bezoeken' , xy=(1, 0), xytext=(yOffset, 0), 
 					xycoords=('axes fraction', 'data'), textcoords='offset points')
-	plt.annotate('antibiotica' , xy=(1, 10), xytext=(20, 0), color='brown',
+	plt.annotate('antibiotica' , xy=(1, 10), xytext=(yOffset, 0), color='brown',
 					xycoords=('axes fraction', 'data'), textcoords='offset points')
-	plt.annotate('fraxiparine (0,3 ml)' , xy=(1, 20), xytext=(20, 0), color='g',
+	plt.annotate('calcichew' , xy=(1, 10), xytext=(yOffset+75, 0), color='lightblue',
 					xycoords=('axes fraction', 'data'), textcoords='offset points')
-	plt.annotate('cyclosporine (100 mg)' , xy=(1, 30), xytext=(20, 0), color='y',
+	plt.annotate('fraxiparine (0,3 ml)' , xy=(1, 20), xytext=(yOffset, 0), color='g',
 					xycoords=('axes fraction', 'data'), textcoords='offset points')
-	plt.annotate('prednisone (mg)' , xy=(1, 50), xytext=(20, 0), color='b',
+	plt.annotate('cyclosporine (100 mg)' , xy=(1, 30), xytext=(yOffset, 0), color='y',
 					xycoords=('axes fraction', 'data'), textcoords='offset points')
-	plt.annotate('calcichew' , xy=(1, 70), xytext=(20, 0), color='lightblue',
+	plt.annotate('prednisone (mg)' , xy=(1, 50), xytext=(yOffset, 0), color='b',
+					xycoords=('axes fraction', 'data'), textcoords='offset points')
+	plt.annotate('mycofenolaat (mg)' , xy=(1, 85), xytext=(yOffset, 0), color='r',
 					xycoords=('axes fraction', 'data'), textcoords='offset points')
 
 	ax2.set_ylim([-10,200])
@@ -708,9 +720,18 @@ def plotDiagnostics(w):
 	ax2.yaxis.label.set_color('b')
 	ax2.tick_params(axis='y', colors='b')
 
-
 	plt.legend(scatterpoints = 1,bbox_to_anchor=(1.05, 0.03), loc=2, borderaxespad=0.,fontsize=10,frameon=False)
 	fig.set_tight_layout(True)
+
+	ax3 = ax1.twinx()
+	ax3.set_ylim([-10,200])
+	ax3.set_yticks([70,80,90,100])
+	ax3.set_yticklabels([500,1000,1500,2000])
+	#ax3.set_yticks([70,80,90,100],[500,1000,1500,2000])
+	#TODO:ax3.set_ylabels([500,1000,1500,2000])
+	ax3.yaxis.label.set_color('r')
+	ax3.tick_params(axis='y', colors='r')
+
 
 if __name__ == '__main__':
 	main()
