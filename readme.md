@@ -1,4 +1,4 @@
-# MedPlot
+# TrackPlot
 
 This is a small project, that keeps track of an objects size over time using a manual annotation tool. Each photo should contain (at least one) reference. The photos are ordered chronologically, and using the keys, the user can browse trough them. The references and the actual measurements are inserted using the mouse, and updated live in the plot window.
 
